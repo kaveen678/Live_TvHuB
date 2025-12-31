@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <title>Live TV Player</title>
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
     <style>
         body { 
             background: #000; 
@@ -147,7 +149,7 @@
     window.addEventListener('load', function() {
         setTimeout(function() {
             const intro = document.getElementById('intro-overlay');
-            if(intro) {
+            if(intro){
                 intro.style.opacity = '0';
                 setTimeout(() => intro.style.visibility = 'hidden', 1000);
             }
@@ -155,7 +157,9 @@
     });
 
     const m3uUrl = "https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u";
-    const finalUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(m3uUrl);
+    const proxyUrl = "https://api.allorigins.win/raw?url=";
+    const finalUrl = proxyUrl + encodeURIComponent(m3uUrl);
+    
     let allChannels = [];
     let currentPlayingUrl = ""; 
 
@@ -166,7 +170,13 @@
         height: '100%',
         autoPlay: true,
         mimeType: "application/x-mpegURL",
-        hlsjsConfig: { enableWorker: true }
+        hlsjsConfig: {
+            enableWorker: true,
+            // ප්ලේයර් එකේ නෙට්වර්ක් එරර් මගහැරීමට අමතර සැකසුම්
+            xhrSetup: function(xhr, url) {
+                xhr.withCredentials = false;
+            }
+        }
     });
 
     function formatName(name) {
@@ -177,6 +187,7 @@
         return formatted.replace(/\bHd\b/g, "HD");
     }
 
+    // ප්ලේලිස්ට් එක ලෝඩ් කිරීම
     fetch(finalUrl)
         .then(response => response.text())
         .then(data => {
@@ -245,11 +256,13 @@
         displayChannels(filtered);
     });
 
+    // ඕනෑම වීඩියෝ එරර් එකක් ආවොත් ස්වයංක්‍රීයව රීලෝඩ් වීම
     player.on(Clappr.Events.PLAYER_ERROR, function() {
+        console.log("Player Error Occurred. Retrying...");
         setTimeout(function() {
             player.load(player.options.source);
             player.play();
-        }, 2000);
+        }, 3000);
     });
 </script>
 

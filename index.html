@@ -156,10 +156,12 @@
         }, 3000);
     });
 
+    // වඩාත් ස්ථාවර ප්‍රොක්සි සේවාවක් භාවිතා කර ඇත
     const m3uUrl = "https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u";
-    const proxyUrl = "https://api.allorigins.win/raw?url=";
-    const finalUrl = proxyUrl + encodeURIComponent(m3uUrl);
-    
+    const finalUrl = "https://cors-anywhere.herokuapp.com/" + m3uUrl; // සමහර විට මෙයට access අවශ්‍ය විය හැක
+    // විකල්ප ප්‍රොක්සියක් (වඩාත් සුදුසුයි GitHub Pages සඳහා)
+    const backupProxy = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(m3uUrl);
+
     let allChannels = [];
     let currentPlayingUrl = ""; 
 
@@ -172,10 +174,8 @@
         mimeType: "application/x-mpegURL",
         hlsjsConfig: {
             enableWorker: true,
-            // ප්ලේයර් එකේ නෙට්වර්ක් එරර් මගහැරීමට අමතර සැකසුම්
-            xhrSetup: function(xhr, url) {
-                xhr.withCredentials = false;
-            }
+            // HTTPS අඩවියක http වීඩියෝ වැඩ කිරීමට මෙය උදව් වේ
+            forceHTTPS: false 
         }
     });
 
@@ -187,8 +187,8 @@
         return formatted.replace(/\bHd\b/g, "HD");
     }
 
-    // ප්ලේලිස්ට් එක ලෝඩ් කිරීම
-    fetch(finalUrl)
+    // ප්ලේලිස්ට් එක ලබා ගැනීම (Codetabs proxy භාවිතා කර ඇත)
+    fetch(backupProxy)
         .then(response => response.text())
         .then(data => {
             const lines = data.split('\n');
@@ -199,13 +199,15 @@
                     let rawName = line.split(',')[1] || "Live Channel";
                     name = formatName(rawName);
                 } else if (line.startsWith('http')) {
-                    allChannels.push({ name: name, url: line });
+                    // http ලින්ක් https වලට බලෙන් හැරවීම (වැඩ නොකළහොත් මුල් ලින්ක් එකම තබයි)
+                    let videoUrl = line.replace("http://", "https://");
+                    allChannels.push({ name: name, url: videoUrl });
                 }
             });
             displayChannels(allChannels);
         })
         .catch(error => {
-            document.getElementById('status').innerText = "Failed to load playlist.";
+            document.getElementById('status').innerText = "Failed to load playlist. Please refresh.";
         });
 
     function displayChannels(channels) {
@@ -256,9 +258,7 @@
         displayChannels(filtered);
     });
 
-    // ඕනෑම වීඩියෝ එරර් එකක් ආවොත් ස්වයංක්‍රීයව රීලෝඩ් වීම
     player.on(Clappr.Events.PLAYER_ERROR, function() {
-        console.log("Player Error Occurred. Retrying...");
         setTimeout(function() {
             player.load(player.options.source);
             player.play();

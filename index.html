@@ -1,270 +1,248 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Live TV Player</title>
+    <meta name="referrer" content="no-referrer">
+    <title>Premium Glass Player - Admin Pro</title>
     
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/clappr@latest/dist/clappr.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
     <style>
-        body { 
-            background: #000; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            min-height: 100vh; 
-            font-family: sans-serif;
-            overflow-x: hidden;
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --accent: #00d2ff;
         }
 
-        #intro-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: url('https://i.ibb.co/fYNjcnvq/penguins-of-madagascar-movie.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 1s ease-out, visibility 1s;
-        }
-        #intro-overlay h1 {
-            color: #e50914;
-            font-size: 3rem;
-            margin: 0;
-            animation: pulse 2s infinite;
-        }
-        #intro-overlay p {
-            color: #fff;
-            letter-spacing: 5px;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.8; }
+            color: white;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        #player { 
-            width: 100%; 
-            max-width: 100%; 
-            height: auto; 
-            aspect-ratio: 16 / 9; 
-            background: #000; 
+        body::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); 
+            backdrop-filter: blur(2px); 
+            z-index: -1;
         }
-        #search-container {
-            width: 100%;
-            padding: 10px;
-            background: #222;
-        }
-        #search-input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 5px;
-            border: none;
-            background: #333;
-            color: white;
-            font-size: 16px;
-            outline: none;
-        }
-        #playlist-container {
-            width: 100%;
-            background: #111;
-            flex: 1;
-            overflow-y: auto;
-        }
-        .channel-row {
+
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
             padding: 15px;
-            color: #fff;
-            border-bottom: 1px solid #222;
-            cursor: pointer;
-            transition: 0.2s;
+            width: 95%;
+            max-width: 900px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            margin-top: -60px;
+            z-index: 1;
         }
-        .channel-row:hover { background: #333; }
-        .active-ch { background: #e50914 !important; font-weight: bold; }
-        #status { color: #888; text-align: center; padding: 20px; }
+
+        .plyr { border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; }
+        /* ප්‍රෝග්‍රස් බාර් එක අවශ්‍ය නම් පහත පේළිය මකා දමන්න */
+        .plyr__progress, .plyr__time--current, .plyr__time--duration { display: none !important; }
+
+        #adminPanel {
+            display: none;
+            margin-top: 15px;
+            padding: 20px;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            text-align: left;
+        }
+
+        .admin-info {
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid var(--glass-border);
+            word-wrap: break-word;
+            word-break: break-all;
+            white-space: normal;
+            line-height: 1.4;
+            color: #e0e0e0;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            width: calc(100% - 26px);
+            margin-bottom: 15px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            background: var(--accent);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+
+        .btn-close {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .admin-trigger {
+            position: fixed;
+            bottom: 110px;
+            right: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0,0,0,0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            z-index: 100;
+            border: 1px solid var(--glass-border);
+        }
 
         footer {
+            position: fixed;
+            bottom: 0;
             width: 100%;
-            padding: 20px;
-            background: #000;
-            color: #888;
+            padding: 20px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid var(--glass-border);
             text-align: center;
-            font-size: 13px;
-            border-top: 1px solid #222;
+            z-index: 90;
         }
-        .whatsapp-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #25D366;
-            text-decoration: none;
-            font-size: 16px;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        .whatsapp-btn img {
-            width: 25px;
-            margin-right: 8px;
-        }
+
+        .copyright { font-size: 12px; margin-bottom: 25px; }
+        .designer { font-size: 10px; opacity: 0.7; }
     </style>
 </head>
 <body>
 
-<div id="intro-overlay">
-    <h1>LIVE TV</h1>
-    <p>Powered By Kaveen Chamodya</p>
+<div class="glass-container">
+    <video id="player" playsinline controls crossorigin="anonymous"></video>
+
+    <div id="adminPanel">
+        <div class="admin-info">
+            <strong style="color: var(--accent);">Current Active Link:</strong><br>
+            <span id="currentLinkDisp">Loading...</span><br><br>
+            <strong>Last Updated:</strong> <span id="lastUpdatedDisp" style="color: #00ffaa;">Never</span>
+        </div>
+        
+        <label style="font-size: 13px; margin-bottom: 8px; display: block;">New Stream URL:</label>
+        <input type="text" id="m3u8Url" placeholder="Paste your .m3u8 link here">
+        <br>
+        <button onclick="updateStream()">Update & Save</button>
+        <button class="btn-close" onclick="closeAdmin()">Close Admin Panel</button>
+    </div>
 </div>
 
-<div id="player"></div>
-
-<div id="search-container">
-    <input type="text" id="search-input" placeholder="Search channels...">
-</div>
-
-<div id="playlist-container">
-    <div id="status">Channels Loading...</div>
-    <div id="channel-list"></div>
-</div>
+<div class="admin-trigger" onclick="checkAccess()">ADMIN LOGIN</div>
 
 <footer>
-    <div>©2026 All Right Received</div>
-    <div style="margin-top: 5px;">Design & Powered By Kaveen Chamodya</div>
-    <a href="https://wa.me/94761544363" class="whatsapp-btn" target="_blank">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-        0761544363
-    </a>
+    <div class="copyright">©2026 All Right Received</div>
+    <div class="designer">Design & Powered By Kaveen Chamodya</div>
 </footer>
 
 <script>
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const intro = document.getElementById('intro-overlay');
-            if(intro){
-                intro.style.opacity = '0';
-                setTimeout(() => intro.style.visibility = 'hidden', 1000);
-            }
-        }, 3000);
-    });
+    const video = document.getElementById('player');
+    
+    // නව ලින්ක් එක මෙහි ඇතුළත් කර ඇත
+    let defaultUrl = 'https://live-en.aisports.cc/moviebox/device01/playlist.m3u8';
+    
+    // LocalStorage පරීක්ෂා කර ප්ලේයරය ක්‍රියාත්මක කිරීම
+    let savedSource = localStorage.getItem('stream_url') || defaultUrl;
+    let lastUpdated = localStorage.getItem('last_update_time') || 'N/A';
 
-    // වඩාත් ස්ථාවර ප්‍රොක්සි සේවාවක් භාවිතා කර ඇත
-    const m3uUrl = "https://ayna.sm-monirulislam-exp.workers.dev/AYNA/ayna.m3u";
-    const finalUrl = "https://cors-anywhere.herokuapp.com/" + m3uUrl; // සමහර විට මෙයට access අවශ්‍ය විය හැක
-    // විකල්ප ප්‍රොක්සියක් (වඩාත් සුදුසුයි GitHub Pages සඳහා)
-    const backupProxy = "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(m3uUrl);
+    document.getElementById('currentLinkDisp').innerText = savedSource;
+    document.getElementById('lastUpdatedDisp').innerText = lastUpdated;
 
-    let allChannels = [];
-    let currentPlayingUrl = ""; 
+    document.addEventListener('DOMContentLoaded', () => {
+        const defaultOptions = {
+            controls: ['play-large', 'play', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+            settings: ['quality', 'speed']
+        };
 
-    var player = new Clappr.Player({
-        parentId: "#player",
-        source: "", 
-        width: '100%',
-        height: '100%',
-        autoPlay: true,
-        mimeType: "application/x-mpegURL",
-        hlsjsConfig: {
-            enableWorker: true,
-            // HTTPS අඩවියක http වීඩියෝ වැඩ කිරීමට මෙය උදව් වේ
-            forceHTTPS: false 
-        }
-    });
-
-    function formatName(name) {
-        if (!name) return "";
-        let formatted = name.toLowerCase().split(' ').map(word => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        return formatted.replace(/\bHd\b/g, "HD");
-    }
-
-    // ප්ලේලිස්ට් එක ලබා ගැනීම (Codetabs proxy භාවිතා කර ඇත)
-    fetch(backupProxy)
-        .then(response => response.text())
-        .then(data => {
-            const lines = data.split('\n');
-            let name = "";
-            lines.forEach(line => {
-                line = line.trim();
-                if (line.startsWith('#EXTINF:')) {
-                    let rawName = line.split(',')[1] || "Live Channel";
-                    name = formatName(rawName);
-                } else if (line.startsWith('http')) {
-                    // http ලින්ක් https වලට බලෙන් හැරවීම (වැඩ නොකළහොත් මුල් ලින්ක් එකම තබයි)
-                    let videoUrl = line.replace("http://", "https://");
-                    allChannels.push({ name: name, url: videoUrl });
+        if (Hls.isSupported()) {
+            const hls = new Hls({
+                xhrSetup: function(xhr, url) {
+                    xhr.withCredentials = false;
                 }
             });
-            displayChannels(allChannels);
-        })
-        .catch(error => {
-            document.getElementById('status').innerText = "Failed to load playlist. Please refresh.";
-        });
-
-    function displayChannels(channels) {
-        const listDiv = document.getElementById('channel-list');
-        const statusDiv = document.getElementById('status');
-        listDiv.innerHTML = "";
-        
-        if (channels.length === 0) {
-            statusDiv.style.display = 'block';
-            statusDiv.innerText = "No channels found.";
-            return;
+            hls.loadSource(savedSource);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                const availableQualities = hls.levels.map((l) => l.height);
+                availableQualities.unshift(0); 
+                defaultOptions.quality = {
+                    default: 0,
+                    options: availableQualities,
+                    forced: true,
+                    onChange: (e) => {
+                        if (e === 0) window.hls.currentLevel = -1;
+                        else window.hls.levels.forEach((l, i) => { if (l.height === e) window.hls.currentLevel = i; });
+                    },
+                };
+                new Plyr(video, defaultOptions);
+            });
+            window.hls = hls;
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = savedSource;
+            new Plyr(video, defaultOptions);
         }
-        statusDiv.style.display = 'none';
+    });
 
-        channels.forEach((ch, index) => {
-            const row = document.createElement('div');
-            row.className = 'channel-row';
-            row.innerText = ch.name;
-            
-            if (ch.url === currentPlayingUrl) {
-                row.classList.add('active-ch');
-            }
-
-            row.onclick = function() {
-                currentPlayingUrl = ch.url; 
-                player.load(ch.url);
-                player.play();
-                document.querySelectorAll('.channel-row').forEach(r => r.classList.remove('active-ch'));
-                row.classList.add('active-ch');
-                window.scrollTo(0,0);
-            };
-            
-            listDiv.appendChild(row);
-
-            if (currentPlayingUrl === "" && index === 0) {
-                currentPlayingUrl = ch.url;
-                player.load(ch.url);
-                row.classList.add('active-ch');
-            }
-        });
+    function checkAccess() {
+        if (prompt("Enter Security Code:") === "544544") {
+            document.getElementById('adminPanel').style.display = 'block';
+        } else {
+            alert("Access Denied!");
+        }
     }
 
-    document.getElementById('search-input').addEventListener('input', function(e) {
-        const searchText = e.target.value.toLowerCase();
-        const filtered = allChannels.filter(ch => 
-            ch.name.toLowerCase().includes(searchText)
-        );
-        displayChannels(filtered);
-    });
+    function closeAdmin() {
+        document.getElementById('adminPanel').style.display = 'none';
+        document.getElementById('m3u8Url').value = ''; 
+    }
 
-    player.on(Clappr.Events.PLAYER_ERROR, function() {
-        setTimeout(function() {
-            player.load(player.options.source);
-            player.play();
-        }, 3000);
-    });
+    function updateStream() {
+        let newUrl = document.getElementById('m3u8Url').value;
+        if (newUrl) {
+            let now = new Date().toLocaleString();
+            localStorage.setItem('stream_url', newUrl);
+            localStorage.setItem('last_update_time', now);
+            alert("Stream Updated Successfully!");
+            window.location.reload();
+        } else {
+            alert("Please paste a link first.");
+        }
+    }
 </script>
-
 </body>
 </html>
